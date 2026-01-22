@@ -1,12 +1,114 @@
-import { Map, Star, ArrowRight, Calendar, MapPin, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Map, Star, ArrowRight, Calendar, MapPin, Search, Mic, MicOff } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import backgroundImage from '../assets/IMAGEM DE FUNDO HOME.jpg'
+
+// Tipos mínimos para Web Speech API (SpeechRecognition)
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  abort(): void
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList
+  resultIndex: number
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string
+  message?: string
+}
+
+interface SpeechRecognitionResultList {
+  length: number
+  item(index: number): SpeechRecognitionResult
+  [index: number]: SpeechRecognitionResult
+}
+
+interface SpeechRecognitionResult {
+  length: number
+  item(index: number): SpeechRecognitionAlternative
+  [index: number]: SpeechRecognitionAlternative
+  isFinal: boolean
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string
+  confidence: number
+}
 
 export function HomePage() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const canSubmit = useMemo(() => query.trim().length > 0, [query])
+  const [speechSupported, setSpeechSupported] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+
+  // Inicializa SpeechRecognition (voz -> texto) no campo de busca da Home
+  useEffect(() => {
+    const SpeechRecognitionCtor =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognitionCtor) return
+
+    setSpeechSupported(true)
+    const recognition: SpeechRecognition = new SpeechRecognitionCtor()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = 'pt-BR'
+
+    recognition.onstart = () => setIsListening(true)
+    recognition.onend = () => setIsListening(false)
+    recognition.onerror = () => setIsListening(false)
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim()
+      if (transcript) {
+        setQuery((prev) => (prev ? `${prev} ${transcript}` : transcript))
+        // foca o input após preencher
+        requestAnimationFrame(() => inputRef.current?.focus())
+      }
+      setIsListening(false)
+    }
+
+    recognitionRef.current = recognition
+    return () => {
+      try {
+        recognition.abort()
+      } catch {
+        // ignore
+      }
+      recognitionRef.current = null
+    }
+  }, [])
+
+  function toggleHomeListening() {
+    const r = recognitionRef.current
+    if (!r) return
+    if (isListening) {
+      try {
+        r.stop()
+      } catch {
+        // ignore
+      }
+      setIsListening(false)
+      return
+    }
+    try {
+      r.start()
+    } catch {
+      setIsListening(false)
+    }
+  }
 
   return (
     <div className="relative min-h-screen">
@@ -55,12 +157,31 @@ export function HomePage() {
                 <span className="h-5 w-px bg-gray-200" />
               </div>
               <input
+                ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="O que você procura?"
                 className="min-w-0 flex-1 bg-white text-sm font-semibold text-gray-900 placeholder:text-gray-500 focus:outline-none"
                 aria-label="Buscar no Mercado da Cidade"
               />
+
+              {/* Microfone (voz -> texto) */}
+              {speechSupported ? (
+                <button
+                  type="button"
+                  onClick={toggleHomeListening}
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
+                    isListening
+                      ? 'bg-red-600 text-white border-red-700 shadow-lg animate-pulse'
+                      : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                  }`}
+                  aria-label={isListening ? 'Parar gravação' : 'Falar (gravar voz)'}
+                  title={isListening ? 'Parar gravação' : 'Falar (gravar voz)'}
+                >
+                  {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </button>
+              ) : null}
+
               <button
                 type="submit"
                 disabled={!canSubmit}
