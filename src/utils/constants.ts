@@ -12,7 +12,8 @@ export const QUESTIONNAIRE = {
 // Layout e Responsividade
 export const LAYOUT = {
   SIDEBAR_WIDTH_DESKTOP: 420,
-  MOBILE_BOTTOM_SHEET_HEIGHT_VH: 44,
+  // Aumentado para dar mais espaço ao chat no mobile (ajuste fino)
+  MOBILE_BOTTOM_SHEET_HEIGHT_VH: 60,
   TABLET_DRAWER_WIDTH: 420,
   TABLET_DRAWER_MAX_WIDTH_VW: 90,
 } as const

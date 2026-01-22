@@ -120,6 +120,14 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Esconde scrollbar (mantém scroll) */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 /* Microinterações - feedback tátil visual */
 @media (hover: hover) {
   button:active,

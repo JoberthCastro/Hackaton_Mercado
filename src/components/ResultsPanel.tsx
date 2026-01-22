@@ -1,6 +1,7 @@
-import { Info, Route, Star } from 'lucide-react'
+import { Info, Route } from 'lucide-react'
 import type { Poi } from '../types'
 import { SECTORS } from '../data/sectors'
+import { getReturnRateText } from '../utils/socialProof'
 
 type Props = {
   query: string
@@ -38,10 +39,7 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
             {results.map((p) => {
               const sector = SECTORS[p.sectorId]
               const canOpenInfo = !!onShowInfo
-              const ratingText =
-                typeof p.rating === 'number'
-                  ? `${p.rating.toFixed(1)}${typeof p.ratingCount === 'number' ? ` (${p.ratingCount})` : ''}`
-                  : null
+              const returnRateText = getReturnRateText(p)
               return (
                 <div
                   key={p.id}
@@ -61,13 +59,6 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
 
                         {/* Informações simplificadas - menos sobrecarga cognitiva */}
                         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600">
-                          {ratingText ? (
-                            <span className="inline-flex items-center gap-1 text-gray-700">
-                              <Star className="h-3.5 w-3.5 fill-accent-500 text-accent-500" />
-                              {ratingText}
-                            </span>
-                          ) : null}
-                          <span className="text-gray-400">•</span>
                           <span className="font-medium">{sector.label}</span>
                           {p.statusText && p.statusText.toLowerCase().includes('aberto') ? (
                             <>
@@ -76,6 +67,10 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                             </>
                           ) : null}
                         </div>
+
+                        {returnRateText ? (
+                          <div className="mt-1 text-xs font-medium text-gray-700">{returnRateText}</div>
+                        ) : null}
 
                         {/* Mobile: apenas produtos principais, desktop: mais detalhes */}
                         <div className="mt-2 text-xs text-gray-600">

@@ -97,7 +97,8 @@ export function SearchPage() {
             'relative h-full flex-1',
             // Só ajusta o encaixe do mapa quando o bottom-sheet de busca está aberto (não quando é Info).
             // Assim: Busca = mapa "encaixa acima" / Info = mapa fica por trás (igual Maps).
-            isMobileBottomSheetOpen ? 'pb-[44vh] md:pb-0' : 'pb-0',
+            // Um pouco mais baixo (mais mapa visível) sem perder o chat
+            isMobileBottomSheetOpen ? 'pb-[60vh] md:pb-0' : 'pb-0',
           ].join(' ')}
         >
           <MarketMap
@@ -171,7 +172,7 @@ export function SearchPage() {
 
             {/* Bottom sheet de busca/resultados */}
             {isMobileBottomSheetOpen ? (
-              <div className="absolute inset-x-0 bottom-0 z-[1500] h-[44vh] rounded-t-2xl border-t border-zinc-200 bg-white shadow-2xl overflow-hidden">
+              <div className="absolute inset-x-0 bottom-0 z-[1500] h-[60vh] rounded-t-2xl border-t border-zinc-200 bg-white shadow-2xl overflow-hidden">
                 <div className="flex h-full flex-col">
                   <div className="flex items-center justify-between px-4 py-2">
                     <div className="flex items-center justify-center flex-1">

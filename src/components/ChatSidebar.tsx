@@ -92,6 +92,8 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const synthesisRef = useRef<SpeechSynthesis | null>(null)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null)
+  const scrollEndRef = useRef<HTMLDivElement | null>(null)
 
   const canSend = text.trim().length > 0 && !isSending
   const geminiOn = isGeminiEnabled()
@@ -285,6 +287,20 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     }
   }, [])
 
+  // Mantém o scroll sempre no final para mostrar a resposta mais recente
+  useEffect(() => {
+    // 2 frames para garantir layout/altura final
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (scrollEndRef.current) {
+          scrollEndRef.current.scrollIntoView({ block: 'end' })
+        } else if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+        }
+      })
+    })
+  }, [messages.length, isSending])
+
   async function send() {
     const raw = text.trim()
     if (!raw) return
@@ -434,7 +450,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-auto px-4 py-4">
+      <div className="flex-1 overflow-auto px-4 py-4" ref={scrollAreaRef}>
         <div className="space-y-4">
           {messages.map((m) => {
             const isUser = m.role === 'user'
@@ -517,12 +533,14 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
               </div>
             </div>
           ) : null}
+          {/* âncora de scroll */}
+          <div ref={scrollEndRef} />
         </div>
       </div>
 
-      <div className="border-t border-gray-200 bg-white p-3">
+      <div className="border-t border-gray-200 bg-white p-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
         {/* Recomendações rápidas acima do input */}
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="mb-2 flex gap-2 overflow-x-auto whitespace-nowrap pb-1 hide-scrollbar">
           {['mocotó', 'peixe', 'artesanato', 'comida', 'frutas'].map((suggestion) => (
             <button
               key={suggestion}
@@ -540,20 +558,20 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
                 }, 0)
               }}
               disabled={isSending}
-              className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 border border-primary-200 hover:bg-primary-100 hover:border-primary-300 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex flex-shrink-0 items-center rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 border border-primary-200 hover:bg-primary-100 hover:border-primary-300 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {suggestion}
             </button>
           ))}
         </div>
         
-        <div className="flex items-center gap-2 rounded-institutional border-2 border-gray-300 bg-white px-4 py-3 shadow-institutional focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200 min-h-[56px]">
+        <div className="flex items-center gap-2 rounded-institutional border-2 border-gray-300 bg-white px-3 py-2 sm:px-4 sm:py-3 shadow-institutional focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200 min-h-[52px]">
           {speechSupported && (
             <button
               type="button"
               onClick={toggleListening}
               disabled={isSending}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-institutional transition-all flex-shrink-0 ${
+              className={`inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-institutional transition-all flex-shrink-0 ${
                 isListening
                   ? 'bg-red-600 text-white shadow-lg border-2 border-red-700 animate-pulse'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300'
@@ -577,7 +595,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
             className="min-w-0 flex-1 bg-transparent text-base font-semibold text-gray-900 placeholder:text-gray-500 focus:outline-none py-1 leading-relaxed resize-none overflow-y-auto"
             rows={1}
             style={{ 
-              minHeight: '40px',
+              minHeight: '36px',
               maxHeight: '120px',
               lineHeight: '1.5'
             }}
@@ -590,7 +608,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
           <button
             disabled={!canSend}
             onClick={() => void send()}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-institutional bg-blue-700 text-white shadow-xl border-2 border-blue-800 transition-all hover:bg-blue-800 active:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex-shrink-0"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-institutional bg-blue-700 text-white shadow-xl border-2 border-blue-800 transition-all hover:bg-blue-800 active:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex-shrink-0"
             aria-label="Enviar"
           >
             <Send className="h-5 w-5" />
