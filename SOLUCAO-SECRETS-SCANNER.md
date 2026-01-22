@@ -2,6 +2,12 @@
 
 Este guia explica como resolver o erro de **"build blocked by Netlify's secrets scanner"**.
 
+## 🔍 Por que está dando erro?
+
+O scanner do Netlify detecta **qualquer valor** que pareça uma variável de ambiente real, mesmo em arquivos de documentação. Valores como `gemini`, `gemini-2.5-flash`, ou qualquer string que pareça um valor real de configuração são flagados como segredos.
+
+**Solução:** Substituir todos os valores reais por placeholders genéricos como `your-mode-here`, `your-api-key-here`, `your-model-here`.
+
 ## 📋 Passo a Passo
 
 ### 1. Verificar se há arquivos `.env` commitados no Git

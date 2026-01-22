@@ -119,14 +119,16 @@ Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
 ```env
 # Modo do LLM: 'gemini' ou 'mock'
-VITE_LLM_MODE=gemini
+# IMPORTANTE: Substitua pelo valor real (ex: 'gemini' ou 'mock')
+VITE_LLM_MODE=your-mode-here
 
 # Chave da API do Google Gemini
 # IMPORTANTE: Substitua pelo valor real da sua chave
 VITE_GEMINI_API_KEY=your-api-key-here
 
 # Modelo do Gemini (opcional, padrão: gemini-2.5-flash)
-VITE_GEMINI_MODEL=gemini-2.5-flash
+# IMPORTANTE: Substitua pelo modelo desejado (ex: 'gemini-2.5-flash')
+VITE_GEMINI_MODEL=your-model-here
 
 # System prompt customizado (opcional)
 # VITE_LLM_SYSTEM_PROMPT=Seu prompt customizado aqui
