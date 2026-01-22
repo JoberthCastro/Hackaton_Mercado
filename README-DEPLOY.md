@@ -38,7 +38,7 @@ O Netlify deve detectar automaticamente as configurações do `netlify.toml`, ma
 
 ```
 VITE_LLM_MODE=gemini
-VITE_GEMINI_API_KEY=sua_chave_aqui
+VITE_GEMINI_API_KEY=your-api-key-here
 VITE_GEMINI_MODEL=gemini-2.5-flash
 ```
 

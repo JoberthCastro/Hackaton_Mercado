@@ -122,7 +122,8 @@ Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 VITE_LLM_MODE=gemini
 
 # Chave da API do Google Gemini
-VITE_GEMINI_API_KEY=sua_chave_aqui
+# IMPORTANTE: Substitua pelo valor real da sua chave
+VITE_GEMINI_API_KEY=your-api-key-here
 
 # Modelo do Gemini (opcional, padrão: gemini-2.5-flash)
 VITE_GEMINI_MODEL=gemini-2.5-flash
