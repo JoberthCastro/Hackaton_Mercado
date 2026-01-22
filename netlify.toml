@@ -4,6 +4,10 @@
   # Diretório de saída do build (Vite gera em 'dist')
   publish = "dist"
 
+# Configuração do scanner de segredos - ignora variáveis específicas
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_LLM_MODE,VITE_LLM_MODEL,VITE_LLM_API_KEY,VITE_GEMINI_API_KEY,VITE_LLM_SYSTEM_PROMPT"
+
 # Configurações de redirecionamento para SPA (Single Page Application)
 # Necessário para o React Router funcionar corretamente
 [[redirects]]
