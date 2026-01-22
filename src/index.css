@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* Variáveis CSS para identidade institucional */
+:root {
+  --color-primary: #0066CC;
+  --color-secondary: #00A859;
+  --color-accent: #FFB800;
+  --color-success: #00A859;
+  --color-warning: #FFB800;
+  --color-error: #DC2626;
+  --color-background: #F9FAFB;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  font-family: var(--font-family);
+}
+
+/* Fallback (caso Tailwind não esteja aplicando em algum ambiente/dispositivo) */
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Layout responsivo é controlado pelos componentes (Tailwind). */
+
+/* Leaflet precisa de altura explícita para renderizar */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  background: var(--color-background);
+  /* evita o scroll da página "brigar" com pan/zoom no mobile */
+  touch-action: none;
+}
+
+/* Estilos institucionais globais */
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar institucional */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-primary);
+}
