@@ -202,6 +202,39 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
               </div>
             )
           })}
+          
+          {/* Indicador de digitação quando a IA está processando */}
+          {isSending && geminiOn ? (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] rounded-card px-4 py-3 bg-gray-200 text-gray-900 border-2 border-gray-400 font-medium">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-1">
+                    <span 
+                      className="inline-block h-2.5 w-2.5 rounded-full bg-gray-600" 
+                      style={{ 
+                        animation: 'typing 1.4s infinite',
+                        animationDelay: '0ms'
+                      }} 
+                    />
+                    <span 
+                      className="inline-block h-2.5 w-2.5 rounded-full bg-gray-600" 
+                      style={{ 
+                        animation: 'typing 1.4s infinite',
+                        animationDelay: '200ms'
+                      }} 
+                    />
+                    <span 
+                      className="inline-block h-2.5 w-2.5 rounded-full bg-gray-600" 
+                      style={{ 
+                        animation: 'typing 1.4s infinite',
+                        animationDelay: '400ms'
+                      }} 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
