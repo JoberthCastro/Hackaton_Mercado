@@ -17,24 +17,7 @@ type Props = {
 export function PoiActionsBar({ poi, onGoTo, onFavorite, onShare, isFavorite = false }: Props) {
   const [showMoreMenu, setShowMoreMenu] = useState(false)
 
-  // Ações principais (sempre visíveis no mobile)
-  const primaryActions = [
-    {
-      id: 'go',
-      label: 'Ir até',
-      icon: MapPin,
-      onClick: onGoTo,
-      primary: true,
-    },
-    {
-      id: 'favorite',
-      label: 'Favoritar',
-      icon: Star,
-      onClick: onFavorite,
-      active: isFavorite,
-      show: !!onFavorite,
-    },
-  ].filter((a) => a.show !== false)
+  // Ações principais são renderizadas diretamente abaixo
 
   // Ações secundárias (no menu "Mais opções")
   const secondaryActions = [
