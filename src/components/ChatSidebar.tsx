@@ -529,10 +529,14 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
               type="button"
               onClick={() => {
                 setText(suggestion)
-                // Foca no input após preencher
+                // Foca no textarea após preencher (sem enviar)
                 setTimeout(() => {
-                  const input = document.querySelector('input[placeholder*="Pergunte"]') as HTMLInputElement
-                  input?.focus()
+                  const textarea = document.querySelector('textarea[placeholder*="Pergunte"]') as HTMLTextAreaElement
+                  if (textarea) {
+                    textarea.focus()
+                    // Move o cursor para o final do texto
+                    textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+                  }
                 }, 0)
               }}
               disabled={isSending}
