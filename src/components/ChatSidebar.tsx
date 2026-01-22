@@ -1,9 +1,62 @@
-import { useMemo, useState } from 'react'
-import { Bot, MapPin, Send } from 'lucide-react'
+import { useMemo, useState, useRef, useEffect } from 'react'
+import { Bot, MapPin, Send, Mic, MicOff } from 'lucide-react'
 import type { ChatMessage, Poi } from '../types'
 import { recommendPois } from '../lib/llmMock'
 import { geminiDebugInfo, geminiDecideMode, geminiReply, isGeminiEnabled } from '../lib/gemini'
 import { generateId, maskApiKey } from '../utils/stringUtils'
+
+// Tipos para Web Speech API
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  abort(): void
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList
+  resultIndex: number
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string
+  message: string
+}
+
+interface SpeechRecognitionResultList {
+  length: number
+  item(index: number): SpeechRecognitionResult
+  [index: number]: SpeechRecognitionResult
+}
+
+interface SpeechRecognitionResult {
+  length: number
+  item(index: number): SpeechRecognitionAlternative
+  [index: number]: SpeechRecognitionAlternative
+  isFinal: boolean
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string
+  confidence: number
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: {
+      new (): SpeechRecognition
+    }
+    webkitSpeechRecognition: {
+      new (): SpeechRecognition
+    }
+  }
+}
 
 function getErrorTips(msg: string): string {
   if (msg.includes('HTTP 403')) {
@@ -31,15 +84,70 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
   const [isSending, setIsSending] = useState(false)
   const [lastGeminiError, setLastGeminiError] = useState<string | null>(null)
   const [showGeminiErrorDetails, setShowGeminiErrorDetails] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
 
   const canSend = text.trim().length > 0 && !isSending
   const geminiOn = isGeminiEnabled()
   const geminiInfo = useMemo(() => geminiDebugInfo(), [])
 
+  // Verifica suporte para Web Speech API
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      setSpeechSupported(true)
+      const recognition = new SpeechRecognition()
+      recognition.continuous = false
+      recognition.interimResults = false
+      recognition.lang = 'pt-BR'
+      
+      recognition.onstart = () => {
+        setIsListening(true)
+      }
+      
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results[0][0].transcript
+        setText((prev) => (prev ? `${prev} ${transcript}` : transcript).trim())
+        setIsListening(false)
+      }
+      
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error('Erro no reconhecimento de voz:', event.error)
+        setIsListening(false)
+        if (event.error === 'no-speech') {
+          // Silenciosamente ignora quando não há fala
+        }
+      }
+      
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+      
+      recognitionRef.current = recognition
+    }
+  }, [])
+
   const headerHint = useMemo(
     () => ['mocotó', 'artesanato', 'peixe', 'comida', 'mercearia'].map((s) => `"${s}"`).join(', '),
     [],
   )
+
+  function toggleListening() {
+    if (!recognitionRef.current) return
+    
+    if (isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+    } else {
+      try {
+        recognitionRef.current.start()
+      } catch (err) {
+        console.error('Erro ao iniciar gravação:', err)
+        setIsListening(false)
+      }
+    }
+  }
 
   async function send() {
     const raw = text.trim()
@@ -240,6 +348,22 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
 
       <div className="border-t border-gray-200 bg-white p-3">
         <div className="flex items-center gap-2 rounded-institutional border-2 border-gray-300 bg-white px-3 py-2 shadow-institutional focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200">
+          {speechSupported && (
+            <button
+              type="button"
+              onClick={toggleListening}
+              disabled={isSending}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-institutional transition-all ${
+                isListening
+                  ? 'bg-red-600 text-white shadow-lg border-2 border-red-700 animate-pulse'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              aria-label={isListening ? 'Parar gravação' : 'Iniciar gravação de voz'}
+              title={isListening ? 'Parar gravação' : 'Falar (gravar voz)'}
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </button>
+          )}
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -249,7 +373,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
                 void send()
               }
             }}
-            placeholder="Pergunte por um produto ou setor…"
+            placeholder={speechSupported ? "Pergunte por um produto ou setor… ou clique no microfone" : "Pergunte por um produto ou setor…"}
             className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-gray-900 placeholder:text-gray-500 focus:outline-none"
           />
           <button
@@ -261,6 +385,11 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
             <Send className="h-4 w-4" />
           </button>
         </div>
+        {isListening && (
+          <div className="mt-2 text-xs text-center text-gray-600 animate-pulse">
+            🎤 Gravando... Fale agora
+          </div>
+        )}
       </div>
     </aside>
   )
