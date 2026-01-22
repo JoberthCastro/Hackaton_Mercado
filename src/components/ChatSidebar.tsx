@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { Bot, MapPin, Send, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
 import type { ChatMessage, Poi } from '../types'
-import { recommendPois } from '../lib/llmMock'
+import { buildAssistantText, recommendPois } from '../lib/llmMock'
 import { geminiDebugInfo, geminiDecideMode, geminiReply, isGeminiEnabled, type UiLang } from '../lib/gemini'
 import { generateId, maskApiKey } from '../utils/stringUtils'
 
@@ -321,8 +321,40 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     setText('')
     setIsSending(true)
 
-    // Sem Gemini: não existe "mock do chat" — apenas orienta a configurar.
+    // Sem Gemini:
+    // - se estiver em modo mock, responde localmente (offline)
+    // - se estiver em modo gemini mas sem chave, orienta a configurar
     if (!geminiOn) {
+      const mode = (geminiInfo.modeRaw || '').toLowerCase()
+
+      if (mode === 'mock') {
+        const recPack = recommendPois(trimmed, pois)
+        const assistantText = buildAssistantText(recPack.intent)
+        const recommendations =
+          recPack.pois.length > 0
+            ? recPack.pois.map((p) => ({
+                poiId: p.id,
+                title: p.name,
+                subtitle: p.addressShort || 'Ver no mapa',
+              }))
+            : undefined
+
+        const assistantMsg: ChatMessage = {
+          id: generateId('a'),
+          role: 'assistant',
+          ts: now + 1,
+          text: assistantText,
+          recommendations,
+        }
+
+        onMessagesChange([...next, assistantMsg])
+        setIsSending(false)
+
+        // Se houver sugestões, publica resultados também (para aparecer no painel)
+        if (recPack.pois.length > 0) onResults?.(trimmed, recPack.pois)
+        return
+      }
+
       const assistantMsg: ChatMessage = {
         id: generateId('a'),
         role: 'assistant',

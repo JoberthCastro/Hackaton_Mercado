@@ -225,6 +225,7 @@ export async function geminiDecideMode(opts: { userText: string; messages: ChatM
         'Detecte também o idioma do usuário (lang): "pt" (português), "en" (inglês), "es" (espanhol), "fr" (francês).',
         'Responda SOMENTE JSON: {"mode":"help"|"search","searchQuery":string,"lang":"pt"|"en"|"es"|"fr"}',
         'Se "help": searchQuery="". Se "search": normalize curto (ex: "mocotó", "comida", "frutas").',
+        'IMPORTANTE: Se o usuário perguntar "o que é / what is / qué es / qu’est-ce que", isso é "help" (explicação), mesmo se tiver nome de produto.',
         `Se o idioma estiver ambíguo, use o idioma preferido atual: "${(opts.preferredLang ?? 'pt') as UiLang}".`,
         `Mensagem: "${opts.userText}"`,
   ].join('\n')

@@ -14,6 +14,26 @@ export function detectIntent(text: string): Intent {
   // Saudações / conversa curta => não executar busca (evita "ola" bater em "cebola")
   if (!q) return { type: 'HELP', query: text }
   const qNoPunct = removePunctuation(q)
+
+  // Perguntas de "significado/explicação" devem ser HELP (mesmo contendo produto)
+  // Exemplos: "o que é mocotó?", "oque e mocoto", "para que serve...", "what is..."
+  const isDefinitionQuestion =
+    qNoPunct.startsWith('o que e ') ||
+    qNoPunct.startsWith('oque e ') ||
+    qNoPunct.startsWith('o que eh ') ||
+    qNoPunct.startsWith('oque eh ') ||
+    qNoPunct.startsWith('que e ') ||
+    qNoPunct.startsWith('qual e ') ||
+    qNoPunct.startsWith('pra que ') ||
+    qNoPunct.startsWith('para que ') ||
+    qNoPunct.startsWith('what is ') ||
+    qNoPunct.startsWith('que es ') ||
+    qNoPunct.startsWith('que es el ') ||
+    qNoPunct.startsWith("qu est ce ") ||
+    qNoPunct.startsWith("qu'est ce ")
+
+  if (isDefinitionQuestion) return { type: 'HELP', query: text }
+
   const smallTalk = new Set([
     'oi',
     'ola',
@@ -119,6 +139,12 @@ export function buildAssistantText(intent: Intent) {
   if (intent.type === 'HELP') {
     const q = normalizeString(intent.query)
     // Respostas simples de atendente quando não há Gemini
+    if (q.includes('mocoto') || q.includes('mocotó') || q.includes('mócoto')) {
+      // Se a pessoa perguntou o que é, explica em linguagem simples
+      if (q.includes('o que') || q.includes('oque') || q.includes('what is') || q.includes('que es') || q.includes('qu est')) {
+        return 'Mocotó é uma comida feita com o pé do boi, cozido por bastante tempo. Ele vira um caldo bem encorpado, muito comum no Brasil e bem tradicional por aqui.'
+      }
+    }
     if (q.includes('historia') || q.includes('história') || (q.includes('mercado') && (q.includes('conta') || q.includes('sobre')))) {
       return 'O Mercado da Cidade de São Luís foi criado em 2024 para abrigar os feirantes do tradicional Mercado Central (fundado em 1864) durante sua reforma. Aqui você encontra vários setores (comida, peixes, frutas, produtos regionais e artesanato) e é um ótimo lugar pra conhecer sabores e tradições locais. Quer procurar comida, frutas, produtos regionais, peixe/marisco ou artesanato?'
     }
