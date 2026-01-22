@@ -1,6 +1,7 @@
 import type { ChatMessage, Poi } from '../types'
 import { SECTORS } from '../data/sectors'
 import { marketSystemPrompt } from './marketSystemPrompt'
+import { GEMINI } from '../utils/constants'
 
 type GeminiRole = 'user' | 'model'
 
@@ -233,11 +234,11 @@ export async function geminiDecideMode(opts: { userText: string; messages: ChatM
 
   const body = {
     systemInstruction: { parts: [{ text: system }] },
-    contents: [...toGeminiHistory(opts.messages, 6), { role: 'user' as const, parts: [{ text: userPrompt }] }],
+    contents: [...toGeminiHistory(opts.messages, GEMINI.MAX_HISTORY_TURNS_DECIDE), { role: 'user' as const, parts: [{ text: userPrompt }] }],
     generationConfig: {
-      temperature: 0,
+      temperature: GEMINI.TEMPERATURE_DECIDE,
       topP: 1,
-      maxOutputTokens: 120,
+      maxOutputTokens: GEMINI.MAX_OUTPUT_TOKENS_DECIDE,
     },
   }
 
@@ -294,11 +295,11 @@ export async function geminiReply(opts: {
 
   const body = {
     systemInstruction: { parts: [{ text: system }] },
-    contents: [...toGeminiHistory(opts.messages, 8), { role: 'user' as const, parts: [{ text: userPrompt }] }],
+    contents: [...toGeminiHistory(opts.messages, GEMINI.MAX_HISTORY_TURNS_REPLY), { role: 'user' as const, parts: [{ text: userPrompt }] }],
     generationConfig: {
-      temperature: 0.2,
-      topP: 0.9,
-      maxOutputTokens: 800, // Aumentado para permitir respostas completas (cultura, história, etc.)
+      temperature: GEMINI.TEMPERATURE_REPLY,
+      topP: GEMINI.TOP_P_REPLY,
+      maxOutputTokens: GEMINI.MAX_OUTPUT_TOKENS_REPLY,
     },
   }
 

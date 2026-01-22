@@ -29,7 +29,7 @@ export function PoiDetailsPanel({ poi, onClose }: Props) {
     [sheetVh, isDragging],
   )
 
-  function onHandlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+  function onHandlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     // Só arrasta no mobile/tablet; no desktop o componente fica estático no painel lateral.
     // Mesmo assim, esse handler só existe no sheet overlay (lg:hidden).
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -37,7 +37,7 @@ export function PoiDetailsPanel({ poi, onClose }: Props) {
     dragRef.current = { startY: e.clientY, startVh: sheetVh }
   }
 
-  function onHandlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+  function onHandlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragRef.current) return
     const dy = e.clientY - dragRef.current.startY
     const vhDelta = (-dy / window.innerHeight) * 100
@@ -45,7 +45,7 @@ export function PoiDetailsPanel({ poi, onClose }: Props) {
     setSheetVh(next)
   }
 
-  function onHandlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
+  function onHandlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragRef.current) return
     try {
       e.currentTarget.releasePointerCapture(e.pointerId)
@@ -72,20 +72,26 @@ export function PoiDetailsPanel({ poi, onClose }: Props) {
           className="fixed inset-x-0 bottom-0 z-[2100] flex flex-col bg-white shadow-2xl rounded-t-2xl"
           style={sheetStyle}
         >
-          {/* Handle + Header (Maps-like) */}
+          {/* Handle + Header (Maps-like) - Área de arrasto aumentada */}
           <div className="flex-shrink-0 border-b border-gray-200 bg-white">
-            <button
-              type="button"
-              onClick={() => setSheetVh((v) => (v >= (MID_VH + MAX_VH) / 2 ? MID_VH : MAX_VH))}
+            {/* Área de arrasto maior e mais fácil de usar */}
+            <div
               onPointerDown={onHandlePointerDown}
               onPointerMove={onHandlePointerMove}
               onPointerUp={onHandlePointerUp}
               onPointerCancel={onHandlePointerUp}
-              className="w-full py-2 touch-none"
+              className="w-full py-4 touch-none cursor-grab active:cursor-grabbing select-none"
               aria-label={expanded ? 'Recolher detalhes' : 'Expandir detalhes'}
             >
-              <div className="mx-auto h-1 w-10 rounded-full bg-gray-300" />
-            </button>
+              <div className="mx-auto h-1.5 w-16 rounded-full bg-gray-400" />
+              <button
+                type="button"
+                onClick={() => setSheetVh((v) => (v >= (MID_VH + MAX_VH) / 2 ? MID_VH : MAX_VH))}
+                className="mt-2 text-xs text-gray-500 font-medium"
+              >
+                {expanded ? 'Recolher' : 'Expandir'}
+              </button>
+            </div>
             <div className="flex items-center justify-between px-4 pb-3">
               <div className="min-w-0">
                 <div className="truncate text-base font-semibold text-gray-900">{poi.name}</div>
