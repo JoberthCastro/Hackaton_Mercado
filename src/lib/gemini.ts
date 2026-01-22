@@ -10,6 +10,8 @@ type GeminiContent = { role: GeminiRole; parts: GeminiPart[] }
 
 type GeminiApiVersion = 'v1' | 'v1beta'
 
+export type UiLang = 'pt' | 'en' | 'es' | 'fr'
+
 function getApiKey() {
   const apiKey =
     (((import.meta as any).env?.VITE_GEMINI_API_KEY as string | undefined) ||
@@ -212,7 +214,7 @@ function safeParseJsonObject(text: string): any | null {
   }
 }
 
-export async function geminiDecideMode(opts: { userText: string; messages: ChatMessage[] }) {
+export async function geminiDecideMode(opts: { userText: string; messages: ChatMessage[]; preferredLang?: UiLang }) {
   const apiKey = getApiKey()
   const model = getPreferredModel()
 
@@ -220,8 +222,10 @@ export async function geminiDecideMode(opts: { userText: string; messages: ChatM
       // Prompt simplificado e direto para resposta mais rápida
       const userPrompt = [
         'Classifique: "help" (conversa) ou "search" (busca produto/setor).',
-        'Responda SOMENTE JSON: {"mode":"help"|"search","searchQuery":string}',
-        'Se "help": searchQuery="". Se "search": normalize curto (ex: "mocotó", "peixe").',
+        'Detecte também o idioma do usuário (lang): "pt" (português), "en" (inglês), "es" (espanhol), "fr" (francês).',
+        'Responda SOMENTE JSON: {"mode":"help"|"search","searchQuery":string,"lang":"pt"|"en"|"es"|"fr"}',
+        'Se "help": searchQuery="". Se "search": normalize curto (ex: "mocotó", "comida", "frutas").',
+        `Se o idioma estiver ambíguo, use o idioma preferido atual: "${(opts.preferredLang ?? 'pt') as UiLang}".`,
         `Mensagem: "${opts.userText}"`,
   ].join('\n')
 
@@ -242,7 +246,8 @@ export async function geminiDecideMode(opts: { userText: string; messages: ChatM
   const parsed = safeParseJsonObject(raw)
   const mode = parsed?.mode === 'search' ? 'search' : 'help'
   const searchQuery = typeof parsed?.searchQuery === 'string' ? parsed.searchQuery.trim() : ''
-  return { mode, searchQuery }
+  const lang: UiLang = parsed?.lang === 'en' || parsed?.lang === 'es' || parsed?.lang === 'fr' ? parsed.lang : 'pt'
+  return { mode, searchQuery, lang }
 }
 
 export async function geminiReply(opts: {
@@ -251,6 +256,8 @@ export async function geminiReply(opts: {
   suggestions: Poi[]
   /** 'help' = conversa/guia; 'search' = busca por produto/setor */
   mode: 'help' | 'search'
+  /** Idioma da resposta (auto-detectado) */
+  lang: UiLang
 }) {
   const apiKey = getApiKey()
   const model = getPreferredModel()
@@ -267,13 +274,42 @@ export async function geminiReply(opts: {
           })
           .join('\n')
 
+  const langRules =
+    opts.lang === 'en'
+      ? [
+          'Reply in ENGLISH.',
+          'Use very simple words (for low literacy). Short sentences.',
+          'If you mention app buttons, keep the Portuguese label and translate in parentheses, e.g. "Ir até" (Go).',
+          'If the user sounds like a tourist, add 1 short helpful tip (food/culture) when relevant.',
+        ].join(' ')
+      : opts.lang === 'es'
+        ? [
+            'Responde en ESPAÑOL.',
+            'Usa palabras muy simples. Frases cortas.',
+            'Si mencionas botones del app, mantén la etiqueta en portugués y traduce entre paréntesis.',
+            'Si el usuario es turista, añade 1 consejo corto cuando tenga sentido.',
+          ].join(' ')
+        : opts.lang === 'fr'
+          ? [
+              'Réponds en FRANÇAIS.',
+              'Utilise des mots très simples. Phrases courtes.',
+              'Si tu mentionnes des boutons de l’app, garde le libellé en portugais et traduis entre parenthèses.',
+              'Si l’utilisateur est touriste, ajoute 1 conseil court si pertinent.',
+            ].join(' ')
+          : [
+              'Responda em PT-BR.',
+              'Use linguagem bem simples (pouca escolaridade). Frases curtas.',
+              'Evite termos técnicos.',
+            ].join(' ')
+
   // Prompt ultra-simplificado para resposta mais rápida - foco em clareza
   const userPrompt = [
     `Pergunta: "${opts.userText}"`,
     `Sugestões: ${suggestionLines || 'Nenhuma'}`,
+    `Regras de idioma/estilo: ${langRules}`,
     opts.mode === 'help'
-      ? 'Responda PT-BR, 1-2 frases. Seja direto. Se pedir história, responda curto.'
-      : 'Responda PT-BR, 1 frase. Diga o setor. Se lista vazia, pergunte o que procura.',
+      ? 'Modo HELP: responda em 1-2 frases, direto. Se pedir história/cultura, responda curto e seguro.'
+      : 'Modo SEARCH: responda em 1 frase (máx. 2). Diga o setor e oriente usar "Ir até" ou "Info". Se lista vazia, pergunte o que procura.',
   ].join('\n')
 
   const body = {

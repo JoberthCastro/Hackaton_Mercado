@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react'
 import { Bot, MapPin, Send, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
 import type { ChatMessage, Poi } from '../types'
 import { recommendPois } from '../lib/llmMock'
-import { geminiDebugInfo, geminiDecideMode, geminiReply, isGeminiEnabled } from '../lib/gemini'
+import { geminiDebugInfo, geminiDecideMode, geminiReply, isGeminiEnabled, type UiLang } from '../lib/gemini'
 import { generateId, maskApiKey } from '../utils/stringUtils'
 
 // Tipos para Web Speech API
@@ -99,6 +99,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
   const scrollAreaRef = useRef<HTMLDivElement | null>(null)
   const scrollEndRef = useRef<HTMLDivElement | null>(null)
   const didApplyInitialRef = useRef(false)
+  const [uiLang, setUiLang] = useState<UiLang>('pt')
 
   const canSend = text.trim().length > 0 && !isSending
   const geminiOn = isGeminiEnabled()
@@ -337,9 +338,10 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     }
 
     try {
-      const decision = await geminiDecideMode({ userText: trimmed, messages: next })
+      const decision = await geminiDecideMode({ userText: trimmed, messages: next, preferredLang: uiLang })
       const isSearch = decision.mode === 'search'
       const searchQuery = decision.searchQuery || trimmed
+      setUiLang(decision.lang)
       const rec = isSearch ? recommendPois(searchQuery, pois).pois : ([] as Poi[])
 
       const assistantText = await geminiReply({
@@ -347,6 +349,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
         messages: next,
         suggestions: rec,
         mode: isSearch ? 'search' : 'help',
+        lang: decision.lang,
       })
       setLastGeminiError(null)
 
