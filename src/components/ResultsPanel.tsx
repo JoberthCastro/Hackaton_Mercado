@@ -59,7 +59,8 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-base font-semibold text-gray-900 md:text-lg">{p.name}</div>
 
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600 md:text-sm">
+                        {/* Informações simplificadas - menos sobrecarga cognitiva */}
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600">
                           {ratingText ? (
                             <span className="inline-flex items-center gap-1 text-gray-700">
                               <Star className="h-3.5 w-3.5 fill-accent-500 text-accent-500" />
@@ -67,33 +68,19 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                             </span>
                           ) : null}
                           <span className="text-gray-400">•</span>
-                          <span>{sector.label}</span>
-                          {p.statusText ? (
+                          <span className="font-medium">{sector.label}</span>
+                          {p.statusText && p.statusText.toLowerCase().includes('aberto') ? (
                             <>
                               <span className="text-gray-400">•</span>
-                              <span
-                                className={
-                                  p.statusText.toLowerCase().includes('fechado')
-                                    ? 'text-error-dark'
-                                    : p.statusText.toLowerCase().includes('breve')
-                                      ? 'text-warning-dark'
-                                      : 'text-success-dark'
-                                }
-                              >
-                                {p.statusText}
-                              </span>
+                              <span className="text-success-dark font-medium">{p.statusText}</span>
                             </>
                           ) : null}
                         </div>
 
-                        <div className="mt-1 text-xs text-gray-500">
-                          {p.addressShort ?? `${p.kind === 'BOX' ? 'Box' : 'Banca'} • Mercado da Cidade`}
-                        </div>
-
-                        {/* Mobile: menos texto, tablet/desktop: mais informações */}
-                        <div className="mt-2 line-clamp-2 text-xs text-gray-600 md:line-clamp-3">
-                          <span className="md:hidden">Produtos: {p.products.slice(0, 4).join(', ')}</span>
-                          <span className="hidden md:inline">Produtos: {p.products.slice(0, 6).join(', ')}</span>
+                        {/* Mobile: apenas produtos principais, desktop: mais detalhes */}
+                        <div className="mt-2 text-xs text-gray-600">
+                          <span className="md:hidden">{p.products.slice(0, 3).join(', ')}</span>
+                          <span className="hidden md:inline">{p.products.slice(0, 5).join(', ')}</span>
                         </div>
                       </div>
                     </div>

@@ -106,8 +106,8 @@ async function generateContentWithFallback(opts: {
   const preferredModelId = normalizeModelId(opts.preferredModel)
   
   // Lista de modelos para tentar (em ordem de preferência)
-  // Apenas modelos que estão disponíveis na API (descobertos via ListModels)
-  const knownModels = [preferredModelId, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro', 'gemini-flash-latest', 'gemini-pro-latest']
+  // Prioriza modelos Flash (mais rápidos) para reduzir latência
+  const knownModels = [preferredModelId, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']
   const uniqueModels = Array.from(new Set(knownModels))
 
   let lastErr: string | null = null
@@ -185,7 +185,8 @@ function getSystemPrompt() {
 
 function toGeminiHistory(messages: ChatMessage[], maxTurns: number): GeminiContent[] {
   // mantém as últimas mensagens (sem recommendations)
-  const tail = messages.slice(-maxTurns)
+  // Pula mensagens de recomendação para reduzir contexto
+  const tail = messages.slice(-maxTurns).filter(m => !m.text.includes('recomendação') && !m.text.includes('sugestão'))
   const res: GeminiContent[] = []
   for (const m of tail) {
     if (m.role === 'user') {
@@ -216,20 +217,12 @@ export async function geminiDecideMode(opts: { userText: string; messages: ChatM
   const model = getPreferredModel()
 
   const system = getSystemPrompt()
+      // Prompt simplificado e direto para resposta mais rápida
       const userPrompt = [
-        'Você é um classificador de intenção para um atendente do Mercado da Cidade (São Luís).',
-    'Classifique a mensagem do usuário em:',
-    '- "help": conversa/saudação/pergunta geral (história, cultura, horários, quem é você etc.)',
-    '- "search": quando o usuário está procurando um produto/setor/estabelecimento no mercado.',
-    '',
-    'Responda SOMENTE com JSON válido, sem texto extra, no formato:',
-    '{"mode":"help"|"search","searchQuery":string}',
-    '',
-    'Regras:',
-    '- Se for "help", use searchQuery=""',
-    '- Se for "search", normalize searchQuery para algo curto (ex: "mocotó", "peixe", "artesanato", "comida").',
-    '',
-    `Mensagem do usuário: "${opts.userText}"`,
+        'Classifique: "help" (conversa) ou "search" (busca produto/setor).',
+        'Responda SOMENTE JSON: {"mode":"help"|"search","searchQuery":string}',
+        'Se "help": searchQuery="". Se "search": normalize curto (ex: "mocotó", "peixe").',
+        `Mensagem: "${opts.userText}"`,
   ].join('\n')
 
   const body = {
@@ -274,23 +267,13 @@ export async function geminiReply(opts: {
           })
           .join('\n')
 
+  // Prompt ultra-simplificado para resposta mais rápida - foco em clareza
   const userPrompt = [
-    `Pergunta do usuário: "${opts.userText}"`,
-    '',
-    'Sugestões (use SOMENTE estas opções):',
-    suggestionLines,
-    '',
+    `Pergunta: "${opts.userText}"`,
+    `Sugestões: ${suggestionLines || 'Nenhuma'}`,
     opts.mode === 'help'
-          ? [
-              'Você é um atendente/guia do Mercado da Cidade de São Luís.',
-          'Responda em PT-BR, com linguagem bem simples e amigável (1–4 frases).',
-          'Se o usuário pedir história/cultura, responda direto (sem falar de coordenadas, setores ou rotas).',
-          'Se fizer sentido, termine com 1 pergunta curta oferecendo 2–4 exemplos do que a pessoa pode buscar (ex: comida, peixe/marisco, frutas, produtos regionais, artesanato).',
-        ].join('\n')
-      : [
-          'Responda em PT-BR, 1–3 frases, com linguagem bem simples e amigável, dizendo o setor e orientando o usuário a usar "Rotas" ou "Info" no resultado.',
-          'Não invente locais fora da lista. Se a lista estiver vazia, faça 1 pergunta de clarificação curta.',
-        ].join('\n'),
+      ? 'Responda PT-BR, 1-2 frases. Seja direto. Se pedir história, responda curto.'
+      : 'Responda PT-BR, 1 frase. Diga o setor. Se lista vazia, pergunte o que procura.',
   ].join('\n')
 
   const body = {

@@ -48,13 +48,13 @@ export const BOTTOM_SHEET = {
 // Gemini API
 export const GEMINI = {
   DEFAULT_MODEL: 'gemini-2.5-flash',
-  FALLBACK_MODELS: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro', 'gemini-flash-latest', 'gemini-pro-latest'],
+  FALLBACK_MODELS: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'],
   API_VERSION: 'v1beta' as const,
   BASE_URL: 'https://generativelanguage.googleapis.com',
-  MAX_HISTORY_TURNS_DECIDE: 6,
-  MAX_HISTORY_TURNS_REPLY: 8,
-  MAX_OUTPUT_TOKENS_DECIDE: 200,
-  MAX_OUTPUT_TOKENS_REPLY: 2000,
+  MAX_HISTORY_TURNS_DECIDE: 3, // Reduzido de 6 para 3 - menos contexto = resposta mais rápida
+  MAX_HISTORY_TURNS_REPLY: 4, // Reduzido de 8 para 4 - menos contexto = resposta mais rápida
+  MAX_OUTPUT_TOKENS_DECIDE: 150, // Reduzido de 200 para 150 - respostas mais curtas
+  MAX_OUTPUT_TOKENS_REPLY: 800, // Reduzido de 2000 para 800 - respostas mais curtas e rápidas
   TEMPERATURE_DECIDE: 0,
   TEMPERATURE_REPLY: 0.2,
   TOP_P_REPLY: 0.9,

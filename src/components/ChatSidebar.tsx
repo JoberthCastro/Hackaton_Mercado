@@ -156,10 +156,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     }
   }, [])
 
-  const headerHint = useMemo(
-    () => ['mocotó', 'artesanato', 'peixe', 'comida', 'mercearia'].map((s) => `"${s}"`).join(', '),
-    [],
-  )
+  // Removido: headerHint não é mais necessário - reduz complexidade visual
 
   function toggleListening() {
     if (!recognitionRef.current) return
@@ -375,8 +372,8 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
           <Bot className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-gray-900">Guia do Mercado da Cidade</div>
-          <div className="truncate text-xs text-gray-500">Exemplos: {headerHint}</div>
+          <div className="truncate text-sm font-semibold text-gray-900">Guia do Mercado</div>
+          {/* Removido: exemplos reduzem complexidade inicial - usuário descobre naturalmente */}
         </div>
         <div className="ml-auto flex items-center gap-2">
           {/* Botão de áudio (text-to-speech) */}
@@ -524,13 +521,35 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
       </div>
 
       <div className="border-t border-gray-200 bg-white p-3">
-        <div className="flex items-center gap-2 rounded-institutional border-2 border-gray-300 bg-white px-3 py-2 shadow-institutional focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200">
+        {/* Recomendações rápidas acima do input */}
+        <div className="mb-3 flex flex-wrap gap-2">
+          {['mocotó', 'peixe', 'artesanato', 'comida', 'frutas'].map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => {
+                setText(suggestion)
+                // Foca no input após preencher
+                setTimeout(() => {
+                  const input = document.querySelector('input[placeholder*="Pergunte"]') as HTMLInputElement
+                  input?.focus()
+                }, 0)
+              }}
+              disabled={isSending}
+              className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 border border-primary-200 hover:bg-primary-100 hover:border-primary-300 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex items-center gap-2 rounded-institutional border-2 border-gray-300 bg-white px-4 py-3 shadow-institutional focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200 min-h-[56px]">
           {speechSupported && (
             <button
               type="button"
               onClick={toggleListening}
               disabled={isSending}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-institutional transition-all ${
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-institutional transition-all flex-shrink-0 ${
                 isListening
                   ? 'bg-red-600 text-white shadow-lg border-2 border-red-700 animate-pulse'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300'
@@ -538,10 +557,10 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
               aria-label={isListening ? 'Parar gravação' : 'Iniciar gravação de voz'}
               title={isListening ? 'Parar gravação' : 'Falar (gravar voz)'}
             >
-              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </button>
           )}
-          <input
+          <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
@@ -551,15 +570,26 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
               }
             }}
             placeholder={speechSupported ? "Pergunte por um produto ou setor… ou clique no microfone" : "Pergunte por um produto ou setor…"}
-            className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-gray-900 placeholder:text-gray-500 focus:outline-none"
+            className="min-w-0 flex-1 bg-transparent text-base font-semibold text-gray-900 placeholder:text-gray-500 focus:outline-none py-1 leading-relaxed resize-none overflow-y-auto"
+            rows={1}
+            style={{ 
+              minHeight: '40px',
+              maxHeight: '120px',
+              lineHeight: '1.5'
+            }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement
+              target.style.height = 'auto'
+              target.style.height = `${Math.min(target.scrollHeight, 120)}px`
+            }}
           />
           <button
             disabled={!canSend}
             onClick={() => void send()}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-institutional bg-blue-700 text-white shadow-xl border-2 border-blue-800 transition-all hover:bg-blue-800 active:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-institutional bg-blue-700 text-white shadow-xl border-2 border-blue-800 transition-all hover:bg-blue-800 active:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex-shrink-0"
             aria-label="Enviar"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-5 w-5" />
           </button>
         </div>
         {isListening && (

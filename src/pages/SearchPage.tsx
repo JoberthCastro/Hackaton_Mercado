@@ -25,7 +25,7 @@ export function SearchPage() {
       id: 'welcome',
       role: 'assistant',
       ts: Date.now(),
-      text: 'Olá! Posso te ajudar a encontrar produtos e estabelecimentos no mercado. Que tal buscar por "mocotó", "peixe", "artesanato" ou "comida"?',
+      text: 'Olá! Digite o que você procura. Exemplo: "mocotó" ou "peixe".',
     },
   ])
 
