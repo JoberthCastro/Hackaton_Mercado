@@ -11,7 +11,7 @@ export const POIS: Poi[] = [
   {
     id: 'rest-seu-ze',
     kind: 'BOX',
-    name: 'Restaurante do Seu Zé',
+    name: 'Restaurante da Nina',
     sectorId: 'RESTAURANTE_LANCHONETE',
     products: [
       'comida',
@@ -34,15 +34,7 @@ export const POIS: Poi[] = [
     statusText: 'Aberto agora',
     addressShort: 'Setor Restaurante e lanchonete • Box',
     phone: '(98) 9 0000-0000',
-    about: `O Restaurante do Seu Zé é uma tradição há mais de três décadas. Fundado em 1990 por José da Silva, conhecido carinhosamente como Seu Zé, o estabelecimento começou como uma pequena banca no Mercado Central e cresceu até se tornar um dos pontos mais queridos. Agora está no Mercado da Cidade, mantendo a mesma qualidade e tradição.
-
-Seu Zé, natural de São Luís, aprendeu os segredos da culinária maranhense com sua avó, Dona Maria, que vendia comida caseira no mercado desde os anos 1950. Ele herdou receitas tradicionais que passam de geração em geração, como o famoso mocotó, preparado com especiarias locais e cozido lentamente por horas.
-
-O restaurante é conhecido por manter a autenticidade dos sabores maranhenses, usando ingredientes frescos comprados diretamente dos produtores do próprio mercado. Seu Zé acredita que a comida deve ser feita com amor e tradição, valores que ele transmite para sua equipe e clientes.
-
-Ao longo dos anos, o Restaurante do Seu Zé se tornou um ponto de encontro para moradores locais, turistas e até mesmo políticos e artistas que frequentam o mercado. As mesas simples e o ambiente acolhedor fazem com que todos se sintam em casa.
-
-Hoje, o estabelecimento é gerido por Seu Zé e sua filha, Maria, que continua preservando as receitas da família enquanto adiciona toques modernos ao cardápio. O restaurante é mais do que um negócio - é um pedaço da história e da cultura de São Luís.`,
+    about: `O restaurante no Mercado Central situa a gastronomia maranhense no centro da experiência turística. Reúne mesas onde se degustam pratos tradicionais – arroz de cuxá, moqueca de camarão, arroz-de-cuxá – preparados com ingredientes locais em receitas passadas de geração em geração. Segundo avaliações de visitantes, é "atração imperdível" para quem busca culinária raiz. Além de alimentar, o restaurante compartilha histórias: na cozinha e às mesas, misturam-se território, memória e cultura, reforçando o papel do Mercado Central como coração histórico e gastronômico de São Luís.`,
   },
   {
     id: 'garrafaria-dona-ana',

@@ -136,6 +136,23 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     if ('speechSynthesis' in window) {
       synthesisRef.current = window.speechSynthesis
       setTtsSupported(true)
+      
+      // Carrega as vozes disponíveis (pode demorar um pouco)
+      // Chrome precisa que as vozes sejam carregadas primeiro
+      const loadVoices = () => {
+        const voices = synthesisRef.current?.getVoices()
+        if (voices && voices.length > 0) {
+          // Vozes carregadas
+        }
+      }
+      
+      // Tenta carregar vozes imediatamente
+      loadVoices()
+      
+      // Alguns navegadores carregam vozes assincronamente
+      if (synthesisRef.current.onvoiceschanged !== undefined) {
+        synthesisRef.current.onvoiceschanged = loadVoices
+      }
     }
   }, [])
 
@@ -167,8 +184,11 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
       .replace(/\*(.*?)\*/g, '$1') // Remove itálico
       .replace(/`(.*?)`/g, '$1') // Remove código inline
       .replace(/#{1,6}\s/g, '') // Remove headers
-      .replace(/\n{2,}/g, '. ') // Substitui quebras de linha por ponto
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Remove links markdown
+      .replace(/\n{2,}/g, '. ') // Substitui quebras de linha duplas por ponto
       .replace(/\n/g, ' ') // Remove quebras de linha simples
+      .replace(/\s{2,}/g, ' ') // Remove espaços múltiplos
+      .replace(/\.{2,}/g, '.') // Remove pontos múltiplos
       .trim()
   }
 
@@ -184,9 +204,32 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
 
     const utterance = new SpeechSynthesisUtterance(cleanText)
     utterance.lang = 'pt-BR'
-    utterance.rate = 1.0
-    utterance.pitch = 1.0
-    utterance.volume = 1.0
+    
+    // Ajustes para voz mais rápida, natural e atrativa
+    utterance.rate = 2.0 // Bem mais rápido e dinâmico (padrão: 1.0, range: 0.1-10)
+    utterance.pitch = 2.0 // Tom mais alto e agradável (padrão: 1.0, range: 0-2)
+    utterance.volume = 1.0 // Volume máximo
+    
+    // Tenta selecionar a melhor voz brasileira disponível
+    const voices = synthesisRef.current.getVoices()
+    
+    // Prioridade: vozes femininas brasileiras > Google > outras brasileiras
+    const brazilianVoice = 
+      voices.find((voice) => 
+        voice.lang.startsWith('pt-BR') && 
+        (voice.name.toLowerCase().includes('feminina') || 
+         voice.name.toLowerCase().includes('female') ||
+         voice.name.toLowerCase().includes('google'))
+      ) || 
+      voices.find((voice) => 
+        voice.lang.startsWith('pt-BR') && 
+        voice.name.toLowerCase().includes('brazil')
+      ) ||
+      voices.find((voice) => voice.lang.startsWith('pt-BR'))
+    
+    if (brazilianVoice) {
+      utterance.voice = brazilianVoice
+    }
 
     utterance.onstart = () => {
       setIsSpeaking(true)
