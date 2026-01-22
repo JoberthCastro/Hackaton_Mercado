@@ -210,7 +210,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     utterance.lang = 'pt-BR'
     
     // Ajustes para voz mais rápida, natural e atrativa
-    utterance.rate = 2.0 // Bem mais rápido e dinâmico (padrão: 1.0, range: 0.1-10)
+    utterance.rate = 1.6 // Bem mais rápido e dinâmico (padrão: 1.0, range: 0.1-10)
     utterance.pitch = 2.0 // Tom mais alto e agradável (padrão: 1.0, range: 0-2)
     utterance.volume = 1.0 // Volume máximo
     
@@ -572,7 +572,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
       <div className="border-t border-gray-200 bg-white p-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
         {/* Recomendações rápidas acima do input */}
         <div className="mb-2 flex gap-2 overflow-x-auto whitespace-nowrap pb-1 hide-scrollbar">
-          {['mocotó', 'peixe', 'artesanato', 'comida', 'frutas'].map((suggestion) => (
+          {['mocotó', 'comida', 'frutas'].map((suggestion) => (
             <button
               key={suggestion}
               type="button"

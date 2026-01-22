@@ -32,7 +32,7 @@ export function SearchPage() {
       id: 'welcome',
       role: 'assistant',
       ts: Date.now(),
-      text: 'Olá! Digite o que você procura. Exemplo: "mocotó" ou "peixe".',
+      text: 'Olá! Digite o que você procura. Exemplo: "mocotó" ou "comida".',
     },
   ])
 

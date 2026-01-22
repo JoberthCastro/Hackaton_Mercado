@@ -72,7 +72,7 @@ export function HomePage() {
               </button>
             </div>
             <div className="mt-2 text-center text-xs text-white/90">
-              Dica: tente “mocotó”, “peixe”, “artesanato” ou “comida”.
+              Dica: tente “mocotó”, “comida” ou “frutas”.
             </div>
           </form>
 
