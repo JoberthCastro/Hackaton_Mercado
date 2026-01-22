@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Search, X } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import type { ChatMessage, Poi } from '../types'
 import { POIS } from '../data/pois'
 import marketImg from '../assets/MERCADO-DA-CIDADE_SETORIZAÇÃO_page-0001.jpg'
@@ -8,6 +9,12 @@ import { MarketMap } from '../components/MarketMap'
 import { PoiDetailsPanel } from '../components/PoiDetailsPanel'
 
 export function SearchPage() {
+  const location = useLocation()
+  const initialChatText = useMemo(() => {
+    const q = new URLSearchParams(location.search).get('q') ?? ''
+    return q.trim()
+  }, [location.search])
+
   const pois = useMemo(() => {
     return POIS as Poi[]
   }, [])
@@ -64,6 +71,8 @@ export function SearchPage() {
             onShowInfo={handleShowInfo}
             resultsQuery={resultsQuery}
             results={results}
+            initialChatText={initialChatText || undefined}
+            autoSendInitialChatText={!!initialChatText}
             onResults={(q, r) => {
               setResultsQuery(q)
               setResults(r)
@@ -144,6 +153,8 @@ export function SearchPage() {
                     }}
                     resultsQuery={resultsQuery}
                     results={results}
+                    initialChatText={initialChatText || undefined}
+                    autoSendInitialChatText={!!initialChatText}
                     onResults={(q, r) => {
                       setResultsQuery(q)
                       setResults(r)
@@ -201,6 +212,8 @@ export function SearchPage() {
                       }}
                       resultsQuery={resultsQuery}
                       results={results}
+                      initialChatText={initialChatText || undefined}
+                      autoSendInitialChatText={!!initialChatText}
                       onResults={(q, r) => {
                         setResultsQuery(q)
                         setResults(r)

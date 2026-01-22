@@ -1,7 +1,13 @@
-import { Map, Star, ArrowRight, Calendar, MapPin } from 'lucide-react'
+import { Map, Star, ArrowRight, Calendar, MapPin, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import backgroundImage from '../assets/IMAGEM DE FUNDO HOME.jpg'
 
 export function HomePage() {
+  const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+  const canSubmit = useMemo(() => query.trim().length > 0, [query])
+
   return (
     <div className="relative min-h-screen">
       {/* Imagem de Fundo */}
@@ -32,6 +38,43 @@ export function HomePage() {
               Espaço moderno e estruturado que abriga os feirantes do tradicional Mercado Central durante sua reforma e modernização.
             </p>
           </div>
+
+          {/* Atalho de busca (leva para o mapa/chat) */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              const q = query.trim()
+              if (!q) return
+              navigate(`/buscar?q=${encodeURIComponent(q)}`)
+            }}
+            className="mx-auto mt-8 max-w-3xl"
+          >
+            <div className="flex items-center gap-2 rounded-full border-2 border-gray-200 bg-white px-4 py-3 shadow-2xl">
+              <div className="flex items-center gap-3 pr-2">
+                <span className="text-[11px] font-extrabold tracking-wide text-primary-700">BUSCA</span>
+                <span className="h-5 w-px bg-gray-200" />
+              </div>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="O que você procura?"
+                className="min-w-0 flex-1 bg-white text-sm font-semibold text-gray-900 placeholder:text-gray-500 focus:outline-none"
+                aria-label="Buscar no Mercado da Cidade"
+              />
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-white shadow-xl border-2 border-blue-800 transition-all hover:bg-blue-800 active:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Pesquisar"
+                title="Pesquisar"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="mt-2 text-center text-xs text-white/90">
+              Dica: tente “mocotó”, “peixe”, “artesanato” ou “comida”.
+            </div>
+          </form>
 
         </div>
 

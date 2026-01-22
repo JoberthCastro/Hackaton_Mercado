@@ -77,9 +77,13 @@ type Props = {
   onMessagesChange: (messages: ChatMessage[]) => void
   onSelectPoi: (poiId: string) => void
   onResults?: (query: string, results: Poi[]) => void
+  /** Texto inicial (atalho) para preencher o chat */
+  initialDraft?: string
+  /** Se true, envia automaticamente o texto inicial */
+  autoSendInitial?: boolean
 }
 
-export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onResults }: Props) {
+export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onResults, initialDraft, autoSendInitial = false }: Props) {
   const [text, setText] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [lastGeminiError, setLastGeminiError] = useState<string | null>(null)
@@ -94,6 +98,7 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement | null>(null)
   const scrollEndRef = useRef<HTMLDivElement | null>(null)
+  const didApplyInitialRef = useRef(false)
 
   const canSend = text.trim().length > 0 && !isSending
   const geminiOn = isGeminiEnabled()
@@ -301,15 +306,15 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     })
   }, [messages.length, isSending])
 
-  async function send() {
-    const raw = text.trim()
-    if (!raw) return
+  async function sendRaw(raw: string) {
+    const trimmed = raw.trim()
+    if (!trimmed) return
     if (isSending) return
 
     const now = Date.now()
     const next: ChatMessage[] = [
       ...messages,
-      { id: generateId('u'), role: 'user', text: raw, ts: now },
+      { id: generateId('u'), role: 'user', text: trimmed, ts: now },
     ]
     onMessagesChange(next)
     setText('')
@@ -332,13 +337,13 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
     }
 
     try {
-      const decision = await geminiDecideMode({ userText: raw, messages: next })
+      const decision = await geminiDecideMode({ userText: trimmed, messages: next })
       const isSearch = decision.mode === 'search'
-      const searchQuery = decision.searchQuery || raw
+      const searchQuery = decision.searchQuery || trimmed
       const rec = isSearch ? recommendPois(searchQuery, pois).pois : ([] as Poi[])
 
       const assistantText = await geminiReply({
-        userText: raw,
+        userText: trimmed,
         messages: next,
         suggestions: rec,
         mode: isSearch ? 'search' : 'help',
@@ -380,6 +385,32 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
       return
     }
   }
+
+  async function send() {
+    return await sendRaw(text)
+  }
+
+  // Atalho vindo da Home: preenche e (opcionalmente) envia automaticamente
+  useEffect(() => {
+    const draft = (initialDraft ?? '').trim()
+    if (!draft) return
+    if (didApplyInitialRef.current) return
+    if (isSending) return
+    didApplyInitialRef.current = true
+
+    if (autoSendInitial) {
+      void sendRaw(draft)
+      return
+    }
+
+    setText(draft)
+    // foca no textarea
+    requestAnimationFrame(() => {
+      const textarea = document.querySelector('textarea[placeholder*="Pergunte"]') as HTMLTextAreaElement | null
+      textarea?.focus()
+      if (textarea) textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+    })
+  }, [initialDraft, autoSendInitial, isSending])
 
   return (
     <aside className="flex h-full w-full flex-col border-r border-gray-200 bg-white">

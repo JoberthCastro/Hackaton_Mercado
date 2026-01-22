@@ -11,6 +11,10 @@ type Props = {
   onResults: (query: string, results: Poi[]) => void
   onSelectPoi: (poiId: string) => void
   onShowInfo?: (poiId: string) => void
+  /** Texto inicial vindo de atalho (ex: Home -> Buscar) */
+  initialChatText?: string
+  /** Se true, envia automaticamente o texto inicial */
+  autoSendInitialChatText?: boolean
 }
 
 export function ChatAndResultsSidebar({
@@ -22,6 +26,8 @@ export function ChatAndResultsSidebar({
   onResults,
   onSelectPoi,
   onShowInfo,
+  initialChatText,
+  autoSendInitialChatText,
 }: Props) {
   return (
     <div className="flex h-full w-full flex-col">
@@ -32,6 +38,8 @@ export function ChatAndResultsSidebar({
           onMessagesChange={onMessagesChange}
           onSelectPoi={onSelectPoi}
           onResults={onResults}
+          initialDraft={initialChatText}
+          autoSendInitial={autoSendInitialChatText}
         />
       </div>
       {resultsQuery ? (
