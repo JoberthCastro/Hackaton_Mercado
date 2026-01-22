@@ -123,45 +123,8 @@ export function PoiActionsBar({ poi, onGoTo, onFavorite, onShare, isFavorite = f
         </div>
       </div>
 
-      {/* Desktop: Ações no painel lateral (mais espaço, pode mostrar mais) */}
-      <div className="hidden lg:block border-t border-gray-200 bg-white p-4">
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={onGoTo}
-            className="flex items-center justify-center gap-2 rounded-xl bg-primary-600 text-white px-4 py-3 font-bold text-sm shadow-lg border-2 border-primary-700 hover:bg-primary-700 transition-colors"
-          >
-            <MapPin className="h-5 w-5" />
-            <span>Ver rota</span>
-          </button>
-          <div className="flex gap-2">
-            {onFavorite && (
-              <button
-                onClick={onFavorite}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-medium transition-colors ${
-                  isFavorite
-                    ? 'bg-yellow-100 text-yellow-700 border-yellow-300'
-                    : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
-                }`}
-              >
-                <Star className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-                <span>{isFavorite ? 'Favorito' : 'Favoritar'}</span>
-              </button>
-            )}
-            {secondaryActions.map((action) => {
-              const Icon = action.icon
-              return (
-                <button
-                  key={action.id}
-                  onClick={action.onClick}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-gray-50 text-gray-700 border-2 border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-100 transition-colors"
-                >
-                  <Icon className="h-4 w-4" />
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
+      {/* Desktop: Sem botões de ação (interface mais limpa) */}
+      {/* Botões removidos conforme solicitado para melhorar UX no desktop */}
     </>
   )
 }

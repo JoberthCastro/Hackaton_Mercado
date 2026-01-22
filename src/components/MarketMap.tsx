@@ -149,8 +149,15 @@ export function MarketMap({
 
   if (!bounds || !imgSize) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-zinc-50 text-sm text-zinc-600">
-        Carregando mapa…
+      <div className="flex h-full w-full items-center justify-center bg-zinc-50">
+        {/* Skeleton loading - microinteração */}
+        <div className="space-y-4 text-center">
+          <div className="mx-auto h-12 w-12 animate-pulse rounded-full bg-primary-200" />
+          <div className="space-y-2">
+            <div className="h-4 w-32 animate-pulse rounded bg-gray-200 mx-auto" />
+            <div className="h-3 w-24 animate-pulse rounded bg-gray-100 mx-auto" />
+          </div>
+        </div>
       </div>
     )
   }

@@ -22,7 +22,7 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                 {results.length === 1 ? 'local' : 'locais'}
               </>
             ) : (
-              <>Pergunte no chat para ver resultados aqui.</>
+              <>Busque por produtos ou setores no chat acima.</>
             )}
           </div>
         </div>
@@ -57,9 +57,9 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-base font-semibold text-gray-900">{p.name}</div>
+                        <div className="truncate text-base font-semibold text-gray-900 md:text-lg">{p.name}</div>
 
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600">
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600 md:text-sm">
                           {ratingText ? (
                             <span className="inline-flex items-center gap-1 text-gray-700">
                               <Star className="h-3.5 w-3.5 fill-accent-500 text-accent-500" />
@@ -90,8 +90,10 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                           {p.addressShort ?? `${p.kind === 'BOX' ? 'Box' : 'Banca'} • Mercado da Cidade`}
                         </div>
 
-                        <div className="mt-2 line-clamp-2 text-xs text-gray-600">
-                          Produtos: {p.products.slice(0, 6).join(', ')}
+                        {/* Mobile: menos texto, tablet/desktop: mais informações */}
+                        <div className="mt-2 line-clamp-2 text-xs text-gray-600 md:line-clamp-3">
+                          <span className="md:hidden">Produtos: {p.products.slice(0, 4).join(', ')}</span>
+                          <span className="hidden md:inline">Produtos: {p.products.slice(0, 6).join(', ')}</span>
                         </div>
                       </div>
                     </div>
@@ -157,7 +159,7 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                         onShowInfo?.(p.id)
                       }}
                       disabled={!onShowInfo}
-                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-institutional border-2 border-gray-800 bg-gray-100 px-4 py-2 text-xs font-bold text-gray-900 transition-all hover:border-blue-600 hover:bg-blue-50 hover:text-blue-900 active:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-institutional border-2 border-gray-700 bg-gray-700 px-4 py-2 text-xs font-bold text-white transition-all hover:border-gray-800 hover:bg-gray-800 active:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
                       <Info className="h-4 w-4" />
                       Info

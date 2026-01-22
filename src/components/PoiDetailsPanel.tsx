@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import type { Poi } from '../types'
 import { SECTORS } from '../data/sectors'
@@ -24,6 +24,15 @@ export function PoiDetailsPanel({ poi, onClose, onGoTo, onFavorite, isFavorite =
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef<{ startY: number; startVh: number } | null>(null)
 
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   const expanded = useMemo(() => sheetVh >= (MID_VH + MAX_VH) / 2, [sheetVh])
   const sheetStyle = useMemo(
     () => ({
@@ -32,6 +41,8 @@ export function PoiDetailsPanel({ poi, onClose, onGoTo, onFavorite, isFavorite =
     }),
     [sheetVh, isDragging],
   )
+  
+  const maxProductsToShow = isMobile ? 8 : 12
 
   function onHandlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     // Só arrasta no mobile/tablet; no desktop o componente fica estático no painel lateral.
@@ -73,7 +84,7 @@ export function PoiDetailsPanel({ poi, onClose, onGoTo, onFavorite, isFavorite =
           onClick={onClose}
         />
         <div
-          className="fixed inset-x-0 bottom-0 z-[2100] flex flex-col bg-white shadow-2xl rounded-t-2xl"
+          className="fixed inset-x-0 bottom-0 z-[2100] flex flex-col bg-white shadow-2xl rounded-t-2xl animate-slide-up"
           style={sheetStyle}
         >
           {/* Handle + Header (Maps-like) - Área de arrasto aumentada */}
@@ -98,8 +109,8 @@ export function PoiDetailsPanel({ poi, onClose, onGoTo, onFavorite, isFavorite =
             </div>
             <div className="flex items-center justify-between px-4 pb-3">
               <div className="min-w-0">
-                <div className="truncate text-base font-semibold text-gray-900">{poi.name}</div>
-                <div className="mt-1 flex items-center gap-2 text-xs text-gray-600">
+                <div className="truncate text-base font-semibold text-gray-900 md:text-lg">{poi.name}</div>
+                <div className="mt-1 flex items-center gap-2 text-xs text-gray-600 md:text-sm">
                   <span className="truncate">{sector.label}</span>
                 </div>
               </div>
@@ -133,16 +144,17 @@ export function PoiDetailsPanel({ poi, onClose, onGoTo, onFavorite, isFavorite =
               </div>
 
               <div className="space-y-2 pt-2">
-                <h3 className="text-xs font-semibold text-gray-900">Produtos disponíveis</h3>
+                <h3 className="text-xs font-semibold text-gray-900 md:text-sm">Produtos disponíveis</h3>
                 <div className="flex flex-wrap gap-1.5">
-                  {poi.products.slice(0, 12).map((product) => (
+                  {/* Mobile: mostra menos produtos, tablet/desktop: mostra mais */}
+                  {poi.products.slice(0, maxProductsToShow).map((product) => (
                     <span key={product} className="rounded-full bg-primary-50 px-2.5 py-1 text-xs text-primary-700 border border-primary-100">
                       {product}
                     </span>
                   ))}
-                  {poi.products.length > 12 && (
+                  {poi.products.length > maxProductsToShow && (
                     <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-500">
-                      +{poi.products.length - 12} mais
+                      +{poi.products.length - maxProductsToShow} mais
                     </span>
                   )}
                 </div>
@@ -150,8 +162,8 @@ export function PoiDetailsPanel({ poi, onClose, onGoTo, onFavorite, isFavorite =
 
               {poi.about && (
                 <div className="space-y-2">
-                  <h3 className="text-xs font-semibold text-gray-900">Sobre</h3>
-                  <p className="text-xs leading-relaxed text-gray-600 whitespace-pre-line">{poi.about}</p>
+                  <h3 className="text-xs font-semibold text-gray-900 md:text-sm">Sobre</h3>
+                  <p className="text-xs leading-relaxed text-gray-600 whitespace-pre-line md:text-sm md:text-gray-700 line-clamp-4 md:line-clamp-none">{poi.about}</p>
                 </div>
               )}
             </div>

@@ -25,7 +25,7 @@ export function SearchPage() {
       id: 'welcome',
       role: 'assistant',
       ts: Date.now(),
-      text: 'Pergunte no chat (ex: "mocotó", "peixe", "artesanato", "comida") para ver resultados e rotas no mapa.',
+      text: 'Olá! Posso te ajudar a encontrar produtos e estabelecimentos no mercado. Que tal buscar por "mocotó", "peixe", "artesanato" ou "comida"?',
     },
   ])
 
