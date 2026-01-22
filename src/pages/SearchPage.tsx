@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Search, X } from 'lucide-react'
 import type { ChatMessage, Poi } from '../types'
 import { POIS } from '../data/pois'
 import marketImg from '../assets/MERCADO-DA-CIDADE_SETORIZAÇÃO_page-0001.jpg'
@@ -17,6 +18,7 @@ export function SearchPage() {
   const [resultsQuery, setResultsQuery] = useState<string>('')
   const [results, setResults] = useState<Poi[]>([])
   const [isTabletDrawerOpen, setIsTabletDrawerOpen] = useState(false)
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(true)
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -45,7 +47,7 @@ export function SearchPage() {
     else setInfoPoiId(undefined)
   }
 
-  const isMobileBottomSheetOpen = !infoPoi
+  const isMobileBottomSheetOpen = !infoPoi && isMobileSearchOpen
 
   return (
     <div className="h-full bg-gray-50">
@@ -81,6 +83,10 @@ export function SearchPage() {
                 setInfoPoiId(undefined)
                 setFocusPoiId(undefined)
               }}
+              onGoTo={() => {
+                setRoutePoiId(infoPoi.id)
+                setInfoPoiId(undefined)
+              }}
             />
           </aside>
         )}
@@ -104,13 +110,16 @@ export function SearchPage() {
             visiblePoiIds={resultsQuery ? results.map((r) => r.id) : []}
           />
 
-          {/* Tablet (768-1023): botão toggle + drawer */}
+          {/* Tablet (768-1023): botão toggle + drawer - melhor posicionamento */}
           <div className="hidden md:block lg:hidden">
             <button
               onClick={() => setIsTabletDrawerOpen(true)}
-              className="absolute left-3 top-3 z-[60] rounded-xl bg-white/95 px-3 py-2 text-xs font-semibold text-zinc-900 shadow border border-zinc-200"
+              className="absolute left-4 bottom-4 z-[60] rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 text-sm font-bold text-zinc-900 shadow-lg border-2 border-zinc-300 hover:bg-white transition-all active:scale-95"
             >
-              Buscar
+              <div className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                <span>Buscar</span>
+              </div>
             </button>
 
             {isTabletDrawerOpen ? (
@@ -147,22 +156,48 @@ export function SearchPage() {
             ) : null}
           </div>
 
-          {/* Mobile (<768): bottom sheet (map 100% da tela) */}
+          {/* Mobile (<768): FAB de busca + bottom sheet */}
           <div className="md:hidden">
+            {/* FAB (Floating Action Button) - Zona do polegar */}
+            {!isMobileSearchOpen && !infoPoi && (
+              <button
+                onClick={() => setIsMobileSearchOpen(true)}
+                className="fixed bottom-20 right-4 z-[1400] flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-2xl border-2 border-primary-700 active:scale-95 transition-transform"
+                aria-label="Abrir busca"
+              >
+                <Search className="h-6 w-6" />
+              </button>
+            )}
+
             {/* Bottom sheet de busca/resultados */}
             {isMobileBottomSheetOpen ? (
               <div className="absolute inset-x-0 bottom-0 z-[1500] h-[44vh] rounded-t-2xl border-t border-zinc-200 bg-white shadow-2xl overflow-hidden">
                 <div className="flex h-full flex-col">
-                  <div className="flex items-center justify-center py-2">
-                    <div className="h-1 w-10 rounded-full bg-zinc-300" />
+                  <div className="flex items-center justify-between px-4 py-2">
+                    <div className="flex items-center justify-center flex-1">
+                      <div className="h-1 w-10 rounded-full bg-zinc-300" />
+                    </div>
+                    <button
+                      onClick={() => setIsMobileSearchOpen(false)}
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      aria-label="Fechar busca"
+                    >
+                      <X className="h-5 w-5 text-gray-600" />
+                    </button>
                   </div>
                   <div className="min-h-0 flex-1">
                     <ChatAndResultsSidebar
                       pois={pois}
                       messages={messages}
                       onMessagesChange={setMessages}
-                      onSelectPoi={setRoutePoiId}
-                      onShowInfo={handleShowInfo}
+                      onSelectPoi={(id) => {
+                        setRoutePoiId(id)
+                        setIsMobileSearchOpen(false)
+                      }}
+                      onShowInfo={(poiId) => {
+                        handleShowInfo(poiId)
+                        setIsMobileSearchOpen(false)
+                      }}
                       resultsQuery={resultsQuery}
                       results={results}
                       onResults={(q, r) => {
@@ -177,7 +212,6 @@ export function SearchPage() {
                 </div>
               </div>
             ) : null}
-
           </div>
 
           {/* Info: no mobile e tablet vira bottom-sheet (estilo Maps). No desktop fica no painel lateral. */}
@@ -188,6 +222,10 @@ export function SearchPage() {
                 onClose={() => {
                   setInfoPoiId(undefined)
                   setFocusPoiId(undefined)
+                }}
+                onGoTo={() => {
+                  setRoutePoiId(infoPoi.id)
+                  setInfoPoiId(undefined)
                 }}
               />
             </div>

@@ -82,3 +82,37 @@ body {
     opacity: 1;
   }
 }
+
+/* Animação de slide up para modais */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Safe area para dispositivos com notch */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Microinterações - feedback tátil visual */
+@media (hover: hover) {
+  button:active,
+  a:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Melhor feedback visual em touch devices */
+@media (pointer: coarse) {
+  button:active {
+    opacity: 0.7;
+  }
+}

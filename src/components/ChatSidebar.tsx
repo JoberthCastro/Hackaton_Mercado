@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
-import { Bot, MapPin, Send, Mic, MicOff } from 'lucide-react'
+import { Bot, MapPin, Send, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
 import type { ChatMessage, Poi } from '../types'
 import { recommendPois } from '../lib/llmMock'
 import { geminiDebugInfo, geminiDecideMode, geminiReply, isGeminiEnabled } from '../lib/gemini'
@@ -86,7 +86,12 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
   const [showGeminiErrorDetails, setShowGeminiErrorDetails] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [speechEnabled, setSpeechEnabled] = useState(true)
+  const [ttsSupported, setTtsSupported] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const synthesisRef = useRef<SpeechSynthesis | null>(null)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   const canSend = text.trim().length > 0 && !isSending
   const geminiOn = isGeminiEnabled()
@@ -126,6 +131,12 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
       
       recognitionRef.current = recognition
     }
+
+    // Verifica suporte para Speech Synthesis (text-to-speech)
+    if ('speechSynthesis' in window) {
+      synthesisRef.current = window.speechSynthesis
+      setTtsSupported(true)
+    }
   }, [])
 
   const headerHint = useMemo(
@@ -148,6 +159,91 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
       }
     }
   }
+
+  // Função para limpar texto (remove markdown e formatação)
+  function cleanTextForSpeech(text: string): string {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove negrito
+      .replace(/\*(.*?)\*/g, '$1') // Remove itálico
+      .replace(/`(.*?)`/g, '$1') // Remove código inline
+      .replace(/#{1,6}\s/g, '') // Remove headers
+      .replace(/\n{2,}/g, '. ') // Substitui quebras de linha por ponto
+      .replace(/\n/g, ' ') // Remove quebras de linha simples
+      .trim()
+  }
+
+  // Função para falar o texto
+  function speakText(text: string) {
+    if (!synthesisRef.current || !speechEnabled) return
+
+    // Para qualquer fala anterior
+    synthesisRef.current.cancel()
+
+    const cleanText = cleanTextForSpeech(text)
+    if (!cleanText) return
+
+    const utterance = new SpeechSynthesisUtterance(cleanText)
+    utterance.lang = 'pt-BR'
+    utterance.rate = 1.0
+    utterance.pitch = 1.0
+    utterance.volume = 1.0
+
+    utterance.onstart = () => {
+      setIsSpeaking(true)
+    }
+
+    utterance.onend = () => {
+      setIsSpeaking(false)
+      utteranceRef.current = null
+    }
+
+    utterance.onerror = () => {
+      setIsSpeaking(false)
+      utteranceRef.current = null
+    }
+
+    utteranceRef.current = utterance
+    synthesisRef.current.speak(utterance)
+  }
+
+  // Para a fala atual
+  function stopSpeaking() {
+    if (synthesisRef.current) {
+      synthesisRef.current.cancel()
+      setIsSpeaking(false)
+      utteranceRef.current = null
+    }
+  }
+
+  // Toggle de áudio
+  function toggleSpeech() {
+    if (isSpeaking) {
+      stopSpeaking()
+    }
+    setSpeechEnabled((prev) => !prev)
+  }
+
+  // Fala automaticamente quando uma nova mensagem do assistente chega
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1]
+    if (lastMessage && lastMessage.role === 'assistant' && speechEnabled && !isSending && ttsSupported) {
+      // Pequeno delay para garantir que a mensagem foi renderizada
+      const timer = setTimeout(() => {
+        if (synthesisRef.current) {
+          speakText(lastMessage.text)
+        }
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length, speechEnabled, isSending, ttsSupported])
+
+  // Limpa a fala quando o componente desmonta
+  useEffect(() => {
+    return () => {
+      stopSpeaking()
+    }
+  }, [])
 
   async function send() {
     const raw = text.trim()
@@ -239,7 +335,31 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
           <div className="truncate text-sm font-semibold text-gray-900">Guia do Mercado da Cidade</div>
           <div className="truncate text-xs text-gray-500">Exemplos: {headerHint}</div>
         </div>
-        <div className="ml-auto flex items-center">
+        <div className="ml-auto flex items-center gap-2">
+          {/* Botão de áudio (text-to-speech) */}
+          {ttsSupported && (
+            <button
+              type="button"
+              onClick={toggleSpeech}
+              className={`inline-flex items-center justify-center w-8 h-8 rounded-full transition-all ${
+                speechEnabled
+                  ? isSpeaking
+                    ? 'bg-primary-600 text-white animate-pulse'
+                    : 'bg-primary-100 text-primary-700 hover:bg-primary-200'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+              title={speechEnabled ? (isSpeaking ? 'Falando...' : 'Desativar áudio') : 'Ativar áudio'}
+              aria-label={speechEnabled ? 'Desativar áudio' : 'Ativar áudio'}
+            >
+              {isSpeaking ? (
+                <Volume2 className="h-4 w-4" />
+              ) : speechEnabled ? (
+                <Volume2 className="h-4 w-4" />
+              ) : (
+                <VolumeX className="h-4 w-4" />
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -287,7 +407,21 @@ export function ChatSidebar({ pois, messages, onMessagesChange, onSelectPoi, onR
                       : 'bg-gray-200 text-gray-900 border-2 border-gray-400 font-medium'
                   }`}
                 >
-                  <div className={`whitespace-pre-wrap ${isUser ? 'text-white' : 'text-gray-900'}`}>{m.text}</div>
+                  <div className={`whitespace-pre-wrap ${isUser ? 'text-white' : 'text-gray-900'}`}>
+                    {m.text}
+                    {/* Botão para repetir áudio nas mensagens do assistente */}
+                    {!isUser && ttsSupported && (
+                      <button
+                        onClick={() => speakText(m.text)}
+                        className="mt-2 flex items-center gap-1 text-xs text-gray-600 hover:text-primary-600 transition-colors"
+                        title="Repetir áudio"
+                        aria-label="Repetir áudio"
+                      >
+                        <Volume2 className="h-3 w-3" />
+                        <span>Ouvir</span>
+                      </button>
+                    )}
+                  </div>
 
                   {!isUser && m.recommendations && m.recommendations.length > 0 ? (
                     <div className="mt-3 space-y-2">

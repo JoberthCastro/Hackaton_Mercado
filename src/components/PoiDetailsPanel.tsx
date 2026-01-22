@@ -2,13 +2,17 @@ import { useMemo, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import type { Poi } from '../types'
 import { SECTORS } from '../data/sectors'
+import { PoiActionsBar } from './PoiActionsBar'
 
 type Props = {
   poi: Poi | null
   onClose: () => void
+  onGoTo?: () => void
+  onFavorite?: () => void
+  isFavorite?: boolean
 }
 
-export function PoiDetailsPanel({ poi, onClose }: Props) {
+export function PoiDetailsPanel({ poi, onClose, onGoTo, onFavorite, isFavorite = false }: Props) {
   if (!poi || !poi.hasRoute) return null
 
   const sector = SECTORS[poi.sectorId]
@@ -115,7 +119,7 @@ export function PoiDetailsPanel({ poi, onClose }: Props) {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+          <div className="flex-1 overflow-y-auto pb-24">
             <div className="p-4 space-y-4">
               <div className="flex items-center gap-2">
                 <span
@@ -152,6 +156,14 @@ export function PoiDetailsPanel({ poi, onClose }: Props) {
               )}
             </div>
           </div>
+          
+          {/* Barra de ações no rodapé (mobile/tablet) */}
+          <PoiActionsBar
+            poi={poi}
+            onGoTo={onGoTo || (() => {})}
+            onFavorite={onFavorite}
+            isFavorite={isFavorite}
+          />
         </div>
       </div>
 
@@ -216,6 +228,14 @@ export function PoiDetailsPanel({ poi, onClose }: Props) {
             ) : null}
           </div>
         </div>
+        
+        {/* Barra de ações (desktop) */}
+        <PoiActionsBar
+          poi={poi}
+          onGoTo={onGoTo || (() => {})}
+          onFavorite={onFavorite}
+          isFavorite={isFavorite}
+        />
       </div>
     </>
   )

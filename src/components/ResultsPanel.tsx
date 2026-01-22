@@ -97,7 +97,36 @@ export function ResultsPanel({ query, results, onSelectPoi, onShowInfo }: Props)
                     </div>
                   </button>
 
-                  <div className="mt-3 flex gap-2">
+                  {/* Mobile: Apenas 1 botão principal (Lei de Hick) */}
+                  <div className="mt-3 md:hidden">
+                    {p.hasRoute !== false ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onSelectPoi(p.id)
+                        }}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-bold text-white border-2 border-primary-700 transition-all active:scale-95 shadow-lg"
+                      >
+                        <Route className="h-4 w-4" />
+                        Ir até
+                      </button>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onShowInfo?.(p.id)
+                        }}
+                        disabled={!onShowInfo}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-bold text-white border-2 border-primary-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                      >
+                        <Info className="h-4 w-4" />
+                        Ver detalhes
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Tablet/Desktop: Mais opções visíveis */}
+                  <div className="mt-3 hidden md:flex gap-2">
                     {p.hasRoute !== false ? (
                       <button
                         onClick={(e) => {
