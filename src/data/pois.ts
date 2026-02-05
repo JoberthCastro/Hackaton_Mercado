@@ -1,5 +1,5 @@
 import type { Poi } from '../types'
-import restImg from '../assets/RESTAURANTE 1.png.png'
+import restImg from '../assets/RESTAURANTE 1.png'
 import produtosImg from '../assets/PRODUTOS TIPICOS 1.png'
 import frutariaImg from '../assets/FRUTARIA 1.png'
 
